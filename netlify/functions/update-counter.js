@@ -6,24 +6,21 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-const CONTRACT = '9jBxPfYJmaDuvpWT3b2J194NYrBWksxhNMZxvi31pump';
+// Paliers
 const MILESTONES = [100000, 500000, 1000000, 5000000, 10000000];
 
 export async function handler() {
   try {
     const today = new Date().toISOString().split('T')[0];
 
-    // Récupérer market cap depuis DexScreener
-    const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${CONTRACT}`);
-    const dexData = await res.json();
+    // Market cap depuis DexScreener Solana
+    const tokenAddress = 'EmidmqwsaEHV2qunR3brnQTyvWS9q7BM8CXyW9NmPrd';
+    const blockchain = 'solana';
+    const response = await fetch(`https://api.dexscreener.com/latest/dex/pairs/${blockchain}/${tokenAddress}`);
+    const dataResp = await response.json();
+    let marketCap = dataResp?.pairs?.[0]?.marketCap || 100000000; // valeur par défaut si aucune donnée
 
-    let marketCap = 0;
-    if (dexData.pairs && dexData.pairs.length > 0) {
-      marketCap = Number(dexData.pairs[0].marketCapUsd) || 0;
-    } else {
-      console.warn('Le contrat n\'est pas encore listé ou pas de données disponibles.');
-    }
-
+    // Calcul des clics
     const clicksToday = Math.floor(marketCap);
 
     // Vérification dans Supabase
@@ -39,6 +36,7 @@ export async function handler() {
       await supabase.from('counters').update({ clicks: clicksToday }).eq('date', today);
     }
 
+    // Total cumulé
     const { data: allCounters } = await supabase.from('counters').select('clicks');
     const totalClicks = allCounters.reduce((acc, row) => acc + row.clicks, 0);
 
