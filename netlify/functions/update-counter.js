@@ -1,3 +1,18 @@
+import { createClient } from '@supabase/supabase-js';
+import fetch from 'node-fetch'; // si Node 18+ sur Netlify, fetch est natif
+
+// Variables d'environnement Supabase
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
+
+// Contract Dexscreener pour Fartdog
+const CONTRACT = 'EmidmqwsaEHV2qunR3brnQTyvWS9q7BM8CXyW9NmPrd';
+
+// Paliers
+const MILESTONES = [100000, 500000, 1000000, 5000000, 10000000];
+
 export async function handler() {
   try {
     const today = new Date().toISOString().split('T')[0];
@@ -39,7 +54,7 @@ export async function handler() {
         todayClicks,
         totalClicks,
         nextMilestone,
-        marketCap // <-- ajout ici
+        marketCap // affichage du market cap en direct
       })
     };
   } catch (e) {
