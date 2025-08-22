@@ -1,13 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
-import fetch from 'node-fetch'; // si Node 18+ sur Netlify, fetch est natif
+import fetch from 'node-fetch'; // si Node 18+, fetch est natif
 
-// Variables d'environnement Supabase
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
 );
 
-// Contract Dexscreener pour Fartdog
+// Contract Dexscreener
 const CONTRACT = '9jBxPfYJmaDuvpWT3b2J194NYrBWksxhNMZxvi31pump';
 
 // Paliers
@@ -17,29 +16,35 @@ export async function handler() {
   try {
     const today = new Date().toISOString().split('T')[0];
 
-    // Market cap depuis Dexscreener
+    // Récupérer le market cap depuis DexScreener
     const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${CONTRACT}`);
     const dexData = await res.json();
 
     let marketCap = 0;
+
+    // Vérifier si le contrat est listé et s’il y a des paires actives
     if (dexData.pairs && dexData.pairs.length > 0) {
       marketCap = Number(dexData.pairs[0].marketCapUsd) || 0;
+    } else {
+      console.warn('Le contrat n\'est pas encore listé ou pas de données disponibles.');
     }
 
-    // Calcul des clics
-    const clicksToday = Math.floor(marketCap);
-
-    // Mise à jour Supabase
+    // Si marketCap = 0, on garde la valeur du dernier jour
     let { data: counter } = await supabase
       .from('counters')
       .select('*')
       .eq('date', today)
       .single();
 
+    const clicksToday = Math.floor(marketCap);
+
     if (!counter) {
       await supabase.from('counters').insert({ date: today, clicks: clicksToday });
     } else {
-      await supabase.from('counters').update({ clicks: clicksToday }).eq('date', today);
+      // Si marketCap = 0, ne pas écraser la valeur du jour
+      if (marketCap > 0) {
+        await supabase.from('counters').update({ clicks: clicksToday }).eq('date', today);
+      }
     }
 
     // Total cumulé
@@ -54,10 +59,14 @@ export async function handler() {
         todayClicks,
         totalClicks,
         nextMilestone,
-        marketCap // affichage du market cap en direct
+        marketCap
       })
     };
+
   } catch (e) {
-    return { statusCode: 500, body: JSON.stringify({ error: e.message }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: e.message })
+    };
   }
 }
