@@ -1,7 +1,24 @@
-body { font-family: sans-serif; padding: 20px; }
-.container { max-width: 600px; margin: 0 auto; }
-h1 { font-size: 32px; }
-span { font-weight: bold; }body { font-family: sans-serif; padding: 20px; }
-.container { max-width: 600px; margin: 0 auto; }
-h1 { font-size: 32px; }
-span { font-weight: bold; }
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background-color: #f0f0f0;
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+h1 {
+  font-size: 32px;
+  margin-bottom: 20px;
+}
+
+span {
+  font-weight: bold;
+  color: #ff5722;
+}
