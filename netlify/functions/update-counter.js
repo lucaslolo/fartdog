@@ -8,7 +8,7 @@ const supabase = createClient(
 );
 
 // Contract Dexscreener pour Fartdog
-const CONTRACT = 'EmidmqwsaEHV2qunR3brnQTyvWS9q7BM8CXyW9NmPrd';
+const CONTRACT = '9jBxPfYJmaDuvpWT3b2J194NYrBWksxhNMZxvi31pump';
 
 // Paliers
 const MILESTONES = [100000, 500000, 1000000, 5000000, 10000000];
