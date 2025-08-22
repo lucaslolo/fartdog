@@ -6,7 +6,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-// Paliers
 const MILESTONES = [100000, 500000, 1000000, 5000000, 10000000];
 
 export async function handler() {
@@ -18,7 +17,7 @@ export async function handler() {
     const blockchain = 'solana';
     const response = await fetch(`https://api.dexscreener.com/latest/dex/pairs/${blockchain}/${tokenAddress}`);
     const dataResp = await response.json();
-    let marketCap = dataResp?.pairs?.[0]?.marketCap || 100000000; // valeur par défaut si aucune donnée
+    let marketCap = dataResp?.pairs?.[0]?.marketCap || 100000000;
 
     // Calcul des clics
     const clicksToday = Math.floor(marketCap);
