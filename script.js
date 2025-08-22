@@ -2,6 +2,7 @@ const titleEl = document.getElementById('title');
 const todayEl = document.getElementById('today');
 const totalEl = document.getElementById('total');
 const milestoneEl = document.getElementById('milestone');
+const marketCapEl = document.getElementById('marketcap');
 
 function daySinceJune15() {
   const base = new Date('2025-06-15T00:00:00Z');
@@ -19,11 +20,12 @@ async function fetchCounter() {
     todayEl.textContent = data.todayClicks.toLocaleString();
     totalEl.textContent = data.totalClicks.toLocaleString();
     milestoneEl.textContent = data.nextMilestone.toLocaleString();
+    marketCapEl.textContent = data.marketCap.toLocaleString(); // afficher market cap
   } catch (e) {
     console.error('Erreur fetch compteur:', e);
   }
 }
 
-// Rafraîchissement toutes les 30 secondes
+// Appel initial et rafraîchissement toutes les 30 secondes
 fetchCounter();
 setInterval(fetchCounter, 30000);
