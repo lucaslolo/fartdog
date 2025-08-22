@@ -1,19 +1,43 @@
-<!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fartdog - Phase 1</title>
+  <title>FartDog Tracker</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <h1 id="title">Phase 1 - Day XX</h1>
-    <div>Market Cap: $<span id="marketcap">0</span></div>
-    <div>Clicks aujourd'hui: <span id="today">0</span></div>
-    <div>Total cumulé: <span id="total">0</span></div>
-    <div>Prochain palier: <span id="milestone">0</span></div>
+
+  <!-- Logo -->
+<h1 class="phase-title">Phase 1</h1>
+  <div id="countdown">
+    00:00:00
   </div>
-  <script type="module" src="script.js"></script>
+
+<div class="logo-container">
+  <img src="img/fartdogwithoutfart.png" alt="FartDog Logo" class="main-logo"/>
+</div>
+
+  <!-- Fart Tracker -->
+  <div id="tracker">
+    <div> <span id="count">0</span> / <span id="total-target"></span> </div>
+    <button id="reset-btn">Reset</button>
+  </div>
+
+  <!-- Show Terminal -->
+  <button id="show-btn">Show Terminal</button>
+
+
+  <!-- Terminal -->
+  <div id="terminal">
+    <div id="history">
+      <div>PLEASE HELP ME... WRITE fartdog</div><br/>
+    </div>
+    <div style="display:flex; align-items:center; margin-top:0.5rem;">
+      <span style="color:#ff0;">$ </span>
+      <input id="cmd" autocomplete="off" autofocus />
+      <span class="cursor"></span>
+    </div>
+  </div>
+  <script src="js/logique.js"></script>
+  <script src="js/terminal.js"></script>
 </body>
 </html>
