@@ -20,12 +20,12 @@ async function fetchCounter() {
     todayEl.textContent = data.todayClicks.toLocaleString();
     totalEl.textContent = data.totalClicks.toLocaleString();
     milestoneEl.textContent = data.nextMilestone.toLocaleString();
-    marketCapEl.textContent = data.marketCap.toLocaleString(); // afficher market cap
+    marketCapEl.textContent = data.marketCap.toLocaleString();
   } catch (e) {
     console.error('Erreur fetch compteur:', e);
   }
 }
 
-// Appel initial et rafraîchissement toutes les 30 secondes
+// Rafraîchissement toutes les 30 secondes
 fetchCounter();
 setInterval(fetchCounter, 30000);
