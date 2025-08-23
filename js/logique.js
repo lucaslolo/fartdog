@@ -3,10 +3,12 @@ const SUPABASE_URL = "https://sddctlzlqxcxsavtbmiy.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkZGN0bHpscXhjeHNhdnRibWl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU5MDU1NjQsImV4cCI6MjA3MTQ4MTU2NH0.bPtQwnA84EjTNTtn4wySR2wBAvS0DHVmA-289wyxISU";
 
 const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const todayStr = () => new Date().toISOString().split('T')[0];
+console.log(todayStr()); // ✅ ça fonctionne
 
 supa.from('farts').select('*').eq('date', todayStr()).then(console.log).catch(console.error);
 // ---- UTIL ----
-const todayStr = () => new Date().toISOString().split('T')[0];
+
 
 // ---- DOM ----
 const countdownEl = document.getElementById('countdown');
