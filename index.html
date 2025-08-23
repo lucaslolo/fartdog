@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,28 +6,20 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <h1 class="phase-title">Phase 1</h1>
+  <div id="countdown">00:00:00</div>
 
-  <!-- Logo -->
-<h1 class="phase-title">Phase 1</h1>
-  <div id="countdown">
-    00:00:00
+  <div class="logo-container">
+    <img src="img/fartdogwithoutfart.png" alt="FartDog Logo" class="main-logo"/>
   </div>
 
-<div class="logo-container">
-  <img src="img/fartdogwithoutfart.png" alt="FartDog Logo" class="main-logo"/>
-</div>
-
-  <!-- Fart Tracker -->
   <div id="tracker">
     <div> <span id="count">0</span> / <span id="total-target"></span> </div>
     <button id="reset-btn">Reset</button>
   </div>
 
-  <!-- Show Terminal -->
   <button id="show-btn">Show Terminal</button>
 
-
-  <!-- Terminal -->
   <div id="terminal">
     <div id="history">
       <div>PLEASE HELP ME... WRITE fartdog</div><br/>
@@ -39,7 +30,7 @@
       <span class="cursor"></span>
     </div>
   </div>
-  <script src="js/logique.js"></script>
-  <script src="js/terminal.js"></script>
+
+  <script type="module" src="js/logique.js"></script>
 </body>
 </html>
