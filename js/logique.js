@@ -23,7 +23,7 @@ function updateProgress() {
 // ---- Incrément via Netlify Function ----
 async function incrementGlobalCount() {
   try {
-    const res = await fetch('/.netlify/functions/counter');
+    const res = await fetch('/.netlify/functions/counter.js');
     if (!res.ok) throw new Error('Network response not ok');
     const data = await res.json();
     state.dailyCount = data.dailyCount;

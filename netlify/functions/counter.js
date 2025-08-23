@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
 // ⚠️ Ces variables doivent être définies dans Netlify → Site Settings → Build & Deploy → Environment
+
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
