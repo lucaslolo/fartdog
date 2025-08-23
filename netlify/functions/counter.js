@@ -7,7 +7,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-// Fonction Netlify
+// Fonction Netlifyhf
 export async function handler(event, context) {
   try {
     const today = new Date().toISOString().split('T')[0];
