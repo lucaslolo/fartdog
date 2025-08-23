@@ -84,11 +84,7 @@ updatePhaseAndCountdown();
 // ---- SUPABASE: get or create today's row ----
 async function getOrCreateToday() {
   const d = todayStr();
-  const { data, error } = await supa
-    .from('farts')
-    .select('*')
-    .eq('date', d)
-    .maybeSingle();
+  const { data, error } = await supa.from('farts').select('*').eq('date', d).maybeSingle();
 
   if (error) { console.error('Select error:', error); return; }
 
@@ -126,19 +122,16 @@ async function incrementFart(amount = 1) {
   countEl.textContent = state.dailyCount;
   updateProgress();
 
-  const { error } = await supa
+  // Upsert asynchrone, ne bloque pas le prochain tick
+  supa
     .from('farts')
     .upsert({
       date: todayStr(),
       dailyCount: state.dailyCount,
       lastReset: new Date().toISOString()
-    }, { onConflict: 'date' });
-
-  if (error) console.error('Upsert error:', error);
+    }, { onConflict: 'date' })
+    .then(({ error }) => { if (error) console.error('Upsert error:', error); });
 }
-
-// Auto-incrément chaque seconde
-setInterval(() => incrementFart(1), 1000);
 
 // ---- Reset bouton ----
 resetBtn.addEventListener('click', async () => {
@@ -147,18 +140,16 @@ resetBtn.addEventListener('click', async () => {
   countEl.textContent = 0;
   updateProgress();
 
-  const { error } = await supa
-    .from('farts')
-    .upsert({ date: todayStr(), dailyCount: 0, lastReset: new Date().toISOString() }, { onConflict: 'date' });
-  if (error) console.error('Reset upsert error:', error);
+  supa.from('farts')
+    .upsert({ date: todayStr(), dailyCount: 0, lastReset: new Date().toISOString() }, { onConflict: 'date' })
+    .then(({ error }) => { if (error) console.error('Reset upsert error:', error); });
 });
 
 // ---- Realtime: écoute INSERT + UPDATE sur la ligne du jour ----
 function subscribeRealtime() {
   const filter = `date=eq.${todayStr()}`;
 
-  supa
-    .channel('farts-updates')
+  supa.channel('farts-updates')
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'farts', filter }, (payload) => {
       const n = Number(payload.new.dailycount ?? payload.new.dailyCount ?? 0);
       if (n !== state.dailyCount) {
@@ -180,4 +171,7 @@ function subscribeRealtime() {
 (async function init() {
   await getOrCreateToday();
   subscribeRealtime();
+
+  // auto-incrément 1 par seconde
+  setInterval(() => incrementFart(1), 1000);
 })();
