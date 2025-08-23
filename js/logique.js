@@ -70,7 +70,7 @@ updatePhaseAndCountdown();
 // Récupère le compteur global depuis la function Netlify
 async function fetchGlobalCount() {
   try {
-    const res = await fetch('/.netlify/functions/counter');
+    const res = await fetch('/.netlify/functions/updateCounter');
     if (!res.ok) throw new Error('Network response not ok');
     const data = await res.json();
     return data.dailyCount ?? 0;
@@ -83,7 +83,7 @@ async function fetchGlobalCount() {
 // Incrément côté front (demande à la function)
 async function incrementGlobalCount() {
   try {
-    const res = await fetch('/.netlify/functions/counter');
+    const res = await fetch('/.netlify/functions/updateCounter');
     if (!res.ok) throw new Error('Network response not ok');
     const data = await res.json();
     const n = data.dailyCount ?? 0;
