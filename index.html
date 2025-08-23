@@ -2,20 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FartDog Counter</title>
+  <title>FartDog Tracker</title>
 </head>
 <body>
-  <h1>Fart Counter</h1>
-  <button id="fartBtn">Add Fart</button>
-  <p id="status"></p>
+  <h1>Global Fart Counter</h1>
+  <div>Count: <span id="count">0</span></div>
 
-  <script>
-    document.getElementById('fartBtn').addEventListener('click', async () => {
-      const response = await fetch('/.netlify/functions/counter', { method: 'POST' });
-      const data = await response.json();
-      document.getElementById('status').innerText = data.message;
-    });
-  </script>
+  <script src="js/logique.js"></script>
 </body>
 </html>

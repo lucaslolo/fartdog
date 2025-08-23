@@ -1,11 +1,6 @@
 [build]
-  publish = "dist"
-  command = "npm run build"
+  functions = "netlify/functions"
 
-[functions]
-  directory = "netlify/functions"
-
-[scheduled]
-  [[scheduled.functions]]
-    function = "counter"
-    cron = "0 * * * *" # toutes les heures (change si nécessaire)
+[[scheduled-functions]]
+function = "increment-counter"
+schedule = "*/1 * * * *"  # toutes les minutes
