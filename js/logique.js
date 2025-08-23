@@ -33,7 +33,7 @@ async function incrementGlobalCount() {
   }
 }
 
-// Auto-incrément chaque seconde
+// Auto-incrément chaque secondeff 
 setInterval(() => incrementGlobalCount(), 1000);
 
 // Initialisation : récupère le compteur actuel
