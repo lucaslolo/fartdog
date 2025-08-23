@@ -23,7 +23,7 @@ if (!countdownEl || !countEl || !totalEl || !phaseTitle || !tracker || !resetBtn
 const targets = [10, 50, 100, 250, 500, 1000, 1450];
 const totalTarget = targets[targets.length - 1];
 
-let state = { date: todayStr(), dailyCount: 0, lastReset: new Date().toISOString() };
+let data = { date: todayStr(), dailyCount: 0, lastReset: new Date().toISOString() };
 let clickSound = new Audio('sound/fart1.mp3');
 
 // Progress bar
@@ -42,7 +42,7 @@ function renderTargets(currentValue) {
 
 // Son en fonction des paliers
 function setupClickSound() {
-  const n = Math.floor(state.dailyCount);
+  const n = Math.floor(data.dailyCount);
   clickSound.volume =
     n < targets[0] ? 0 :
     n < targets[1] ? 0.02 :
@@ -55,7 +55,7 @@ function setupClickSound() {
 
 // Maj barre + cibles
 function updateProgress() {
-  const n = Math.floor(state.dailyCount);
+  const n = Math.floor(data.dailyCount);
   const pct = Math.min((n / totalTarget) * 100, 100);
   progressBar.style.width = pct + '%';
   progressBar.textContent = `${pct.toFixed(2)}%`;
@@ -84,21 +84,26 @@ updatePhaseAndCountdown();
 // ---- SUPABASE: get or create today's row ----
 async function getOrCreateToday() {
   const d = todayStr();
-  const { data, error } = await supa.from('farts').select('*').eq('date', d).maybeSingle();
+  const { data: existing, error } = await supa
+    .from('farts')
+    .select('*')
+    .eq('date', d)
+    .maybeSingle();
 
   if (error) { console.error('Select error:', error); return; }
 
-  if (data) {
-    state = {
-      date: data.date,
-      dailyCount: Number(data.dailycount ?? data.dailyCount ?? 0),
-      lastReset: data.lastreset ?? data.lastReset ?? new Date().toISOString()
+  if (existing) {
+    data = {
+      date: existing.date,
+      dailyCount: Number(existing.dailycount ?? existing.dailyCount ?? 0),
+      lastReset: existing.lastreset ?? existing.lastReset ?? new Date().toISOString()
     };
-    countEl.textContent = Math.floor(state.dailyCount);
+    countEl.textContent = Math.floor(data.dailyCount);
     updateProgress();
     return;
   }
 
+  // Create row if missing
   const { data: inserted, error: insertError } = await supa
     .from('farts')
     .insert({ date: d, dailyCount: 0, lastReset: new Date().toISOString() })
@@ -107,7 +112,7 @@ async function getOrCreateToday() {
 
   if (insertError) { console.error('Insert error:', insertError); return; }
 
-  state = {
+  data = {
     date: inserted.date,
     dailyCount: Number(inserted.dailycount ?? inserted.dailyCount ?? 0),
     lastReset: inserted.lastreset ?? inserted.lastReset ?? new Date().toISOString()
@@ -116,33 +121,48 @@ async function getOrCreateToday() {
   updateProgress();
 }
 
-// ---- Incrément local + DB ----
-async function incrementFart(amount = 1) {
-  state.dailyCount = Math.floor(Number(state.dailyCount) + amount);
-  countEl.textContent = state.dailyCount;
-  updateProgress();
+// ---- Incrément global partagé ----
+async function incrementGlobalCount(amount = 1) {
+  try {
+    data.dailyCount = (data.dailyCount || 0) + amount;
+    countEl.textContent = Math.floor(data.dailyCount);
+    updateProgress();
 
-  // Upsert asynchrone, ne bloque pas le prochain tick
-  supa
-    .from('farts')
-    .upsert({
-      date: todayStr(),
-      dailyCount: state.dailyCount,
-      lastReset: new Date().toISOString()
-    }, { onConflict: 'date' })
-    .then(({ error }) => { if (error) console.error('Upsert error:', error); });
+    const res = await fetch('/.netlify/functions/updateFarts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'increment', count: data.dailyCount })
+    });
+
+    const text = await res.text();
+    let result;
+    try { result = JSON.parse(text); } catch(e) { return; }
+
+    if (result && typeof result.dailyCount === 'number') {
+      data.dailyCount = result.dailyCount;
+      countEl.textContent = Math.floor(data.dailyCount);
+      updateProgress();
+    }
+
+  } catch (err) {
+    console.error('Increment error:', err);
+  }
 }
+
+// Auto-incrément de 1 par seconde
+setInterval(() => incrementGlobalCount(1), 1000);
 
 // ---- Reset bouton ----
 resetBtn.addEventListener('click', async () => {
   if (!confirm('Reset counter for today?')) return;
-  state.dailyCount = 0;
+  data.dailyCount = 0;
   countEl.textContent = 0;
   updateProgress();
 
-  supa.from('farts')
-    .upsert({ date: todayStr(), dailyCount: 0, lastReset: new Date().toISOString() }, { onConflict: 'date' })
-    .then(({ error }) => { if (error) console.error('Reset upsert error:', error); });
+  const { error } = await supa
+    .from('farts')
+    .upsert({ date: todayStr(), dailyCount: 0, lastReset: new Date().toISOString() }, { onConflict: 'date' });
+  if (error) console.error('Reset upsert error:', error);
 });
 
 // ---- Realtime: écoute INSERT + UPDATE sur la ligne du jour ----
@@ -152,15 +172,15 @@ function subscribeRealtime() {
   supa.channel('farts-updates')
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'farts', filter }, (payload) => {
       const n = Number(payload.new.dailycount ?? payload.new.dailyCount ?? 0);
-      if (n !== state.dailyCount) {
-        state.dailyCount = n;
+      if (n !== data.dailyCount) {
+        data.dailyCount = n;
         countEl.textContent = n;
         updateProgress();
       }
     })
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'farts', filter }, (payload) => {
       const n = Number(payload.new.dailycount ?? payload.new.dailyCount ?? 0);
-      state.dailyCount = n;
+      data.dailyCount = n;
       countEl.textContent = n;
       updateProgress();
     })
@@ -171,7 +191,4 @@ function subscribeRealtime() {
 (async function init() {
   await getOrCreateToday();
   subscribeRealtime();
-
-  // auto-incrément 1 par seconde
-  setInterval(() => incrementFart(1), 1000);
 })();
