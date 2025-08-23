@@ -84,17 +84,13 @@ updatePhaseAndCountdown();
 // ---- SUPABASE: get or create today's row ----
 async function getOrCreateToday() {
   const d = todayStr();
-
-  // 1) read
   const { data, error } = await supa
     .from('farts')
     .select('*')
     .eq('date', d)
     .maybeSingle();
 
-  if (error) {
-    console.error('Select error:', error);
-  }
+  if (error) { console.error('Select error:', error); return; }
 
   if (data) {
     state = {
@@ -107,17 +103,13 @@ async function getOrCreateToday() {
     return;
   }
 
-  // 2) create if missing
   const { data: inserted, error: insertError } = await supa
     .from('farts')
     .insert({ date: d, dailyCount: 0, lastReset: new Date().toISOString() })
     .select()
     .single();
 
-  if (insertError) {
-    console.error('Insert error:', insertError);
-    return;
-  }
+  if (insertError) { console.error('Insert error:', insertError); return; }
 
   state = {
     date: inserted.date,
@@ -145,61 +137,43 @@ async function incrementFart(amount = 1) {
   if (error) console.error('Upsert error:', error);
 }
 
-// Auto-incrément chaque seconde (tu peux changer la cadence ici)
-const auto = setInterval(() => incrementFart(1), 1000);
+// Auto-incrément chaque seconde
+setInterval(() => incrementFart(1), 1000);
 
-// ---- Reset bouton (remet à 0 pour aujourd’hui) ----
-if (resetBtn) {
-  resetBtn.addEventListener('click', async () => {
-    if (!confirm('Reset counter for today?')) return;
-    state.dailyCount = 0;
-    countEl.textContent = 0;
-    updateProgress();
+// ---- Reset bouton ----
+resetBtn.addEventListener('click', async () => {
+  if (!confirm('Reset counter for today?')) return;
+  state.dailyCount = 0;
+  countEl.textContent = 0;
+  updateProgress();
 
-    const { error } = await supa
-      .from('farts')
-      .upsert({
-        date: todayStr(),
-        dailyCount: 0,
-        lastReset: new Date().toISOString()
-      }, { onConflict: 'date' });
-
-    if (error) console.error('Reset upsert error:', error);
-  });
-}
+  const { error } = await supa
+    .from('farts')
+    .upsert({ date: todayStr(), dailyCount: 0, lastReset: new Date().toISOString() }, { onConflict: 'date' });
+  if (error) console.error('Reset upsert error:', error);
+});
 
 // ---- Realtime: écoute INSERT + UPDATE sur la ligne du jour ----
 function subscribeRealtime() {
   const filter = `date=eq.${todayStr()}`;
 
-  // UPDATE
   supa
     .channel('farts-updates')
-    .on('postgres_changes',
-      { event: 'UPDATE', schema: 'public', table: 'farts', filter },
-      (payload) => {
-        const n = Number(payload.new.dailycount ?? payload.new.dailyCount ?? 0);
-        // évite de re-déclencher un update si c'est nous
-        if (n !== state.dailyCount) {
-          state.dailyCount = n;
-          countEl.textContent = n;
-          updateProgress();
-        }
-      }
-    )
-    // INSERT (au cas où la ligne du jour vient d’être créée ailleurs)
-    .on('postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'farts', filter },
-      (payload) => {
-        const n = Number(payload.new.dailycount ?? payload.new.dailyCount ?? 0);
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'farts', filter }, (payload) => {
+      const n = Number(payload.new.dailycount ?? payload.new.dailyCount ?? 0);
+      if (n !== state.dailyCount) {
         state.dailyCount = n;
         countEl.textContent = n;
         updateProgress();
       }
-    )
-    .subscribe((status) => {
-      // console.log('Realtime status:', status);
-    });
+    })
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'farts', filter }, (payload) => {
+      const n = Number(payload.new.dailycount ?? payload.new.dailyCount ?? 0);
+      state.dailyCount = n;
+      countEl.textContent = n;
+      updateProgress();
+    })
+    .subscribe();
 }
 
 // ---- Init ----
