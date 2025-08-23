@@ -1,62 +1,52 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Récupération des variables d'environnement Netlify
+// ⚠️ Ces variables doivent être définies dans Netlify → Site Settings → Build & Deploy → Environment
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY // Clé service Supabase (privée)
+  process.env.SUPABASE_SERVICE_KEY
 );
 
+// Fonction Netlify
 export async function handler(event, context) {
   try {
     const today = new Date().toISOString().split('T')[0];
 
-    // 1️⃣ Lire la ligne du jour
+    // 1) Récupérer la ligne du jour
     let { data, error } = await supabase
       .from('farts')
       .select('*')
       .eq('date', today)
       .maybeSingle();
 
-    if (error) {
-      console.error('Select error:', error);
-      return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
-    }
+    if (error) throw new Error(error.message);
 
-    // 2️⃣ Créer la ligne si elle n'existe pas
+    // 2) Si la ligne n'existe pas, créer
     if (!data) {
       const { data: inserted, error: insertError } = await supabase
         .from('farts')
-        .insert({ date: today, dailyCount: 0 })
+        .insert({ date: today, dailyCount: 0, lastReset: new Date().toISOString() })
         .select()
         .single();
 
-      if (insertError) {
-        console.error('Insert error:', insertError);
-        return { statusCode: 500, body: JSON.stringify({ error: insertError.message }) };
-      }
-
+      if (insertError) throw new Error(insertError.message);
       data = inserted;
     }
 
-    // 3️⃣ Incrémenter le compteur global de 1
-    const newCount = Number(data.dailyCount) + 1;
+    // 3) Incrément global de 1
+    const newCount = (data.dailyCount ?? 0) + 1;
+
     const { error: updateError } = await supabase
       .from('farts')
       .update({ dailyCount: newCount })
       .eq('date', today);
 
-    if (updateError) {
-      console.error('Update error:', updateError);
-      return { statusCode: 500, body: JSON.stringify({ error: updateError.message }) };
-    }
+    if (updateError) throw new Error(updateError.message);
 
-    // 4️⃣ Retourner le nouveau compteur
     return {
       statusCode: 200,
-      body: JSON.stringify({ dailyCount: newCount })
+      body: JSON.stringify({ dailyCount: newCount }),
     };
   } catch (err) {
-    console.error('Unexpected error:', err);
-    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+    return { statusCode: 500, body: err.message };
   }
 }
