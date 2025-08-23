@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Phase 2 - FartDog</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      color: #fff;
+      font-family: 'Orbitron', Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      transition: background 0.3s;
+      background: #111;
+    }
+    .phase2-box {
+      background: rgba(0,0,0,0.7);
+      border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 4px #fff2;
+      padding: 48px 32px;
+      text-align: center;
+      max-width: 500px;
+      border: 2px solid #fff3;
+      backdrop-filter: blur(2px);
+    }
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 1.5rem;
+      letter-spacing: 2px;
+      text-shadow: 0 2px 16px #000, 0 0 8px #fff5;
+    }
+    p {
+      font-size: 1.4rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+      text-shadow: 0 1px 8px #000;
+    }
+    .phase2-emoji {
+      font-size: 3rem;
+      margin-bottom: 1.5rem;
+      animation: bounce 1.2s infinite alternate;
+      display: block;
+    }
+    @keyframes bounce {
+      to { transform: translateY(-16px) scale(1.2); }
+    }
+  </style>
+</head>
+<body>
+  <div class="phase2-box">
+    <span class="phase2-emoji">🐕‍💨</span>
+    <h1>Phase 2</h1>
+    <p>Phase 2 is coming soon.<br>Stay tuned for the next chapter of the <strong>FartDog</strong> adventure!</p>
+    <p style="font-size:1.1rem;color:#ffd700;margin-top:1.5rem;">Thank you for your support!<br>Big surprises are coming soon...</p>
+    <button onclick="window.location.href='index.html'" style="margin-top:2rem;padding:12px 32px;font-size:1.2rem;background:#fff;color:#b30000;border:2px solid #b30000;border-radius:10px;cursor:pointer;box-shadow:0 2px 8px #0002;">Back to Phase 1</button>
+  </div>
+  <script>
+    // RGB flashing background
+    let rgb = [255,0,0];
+    let step = 0;
+    function nextColor() {
+      switch(step) {
+        case 0: rgb[1] += 5; if (rgb[1] >= 255) step = 1; break;
+        case 1: rgb[0] -= 5; if (rgb[0] <= 0) step = 2; break;
+        case 2: rgb[2] += 5; if (rgb[2] >= 255) step = 3; break;
+        case 3: rgb[1] -= 5; if (rgb[1] <= 0) step = 4; break;
+        case 4: rgb[0] += 5; if (rgb[0] >= 255) step = 5; break;
+        case 5: rgb[2] -= 5; if (rgb[2] <= 0) step = 0; break;
+      }
+      document.body.style.background = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+    }
+    setInterval(nextColor, 30);
+  </script>
+</body>
+</html>
