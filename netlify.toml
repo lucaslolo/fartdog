@@ -1,5 +1,13 @@
 [build]
+  publish = "."
   functions = "netlify/functions"
 
 [[plugins]]
-package = "@netlify/plugin-scheduled-functions"
+  package = "@netlify/plugin-scheduled-functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+[[scheduled.functions]]
+  name = "scheduled"
+  cron = "0 * * * *" # Exécution toutes les heures (CRON)

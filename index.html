@@ -2,40 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>FartDog Tracker</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FartDog Counter</title>
 </head>
 <body>
-  <h1 class="phase-title">Phase 1</h1>
-  <div id="countdown">00:00:00</div>
+  <h1>Fart Counter</h1>
+  <button id="fartBtn">Add Fart</button>
+  <p id="status"></p>
 
-  <div class="logo-container">
-    <img src="img/fartdogwithoutfart.png" alt="FartDog Logo" class="main-logo"/>
-  </div>
-
-  <div id="tracker">
-    <div> <span id="count">0</span> / <span id="total-target"></span> </div>
-    <button id="reset-btn">Reset</button>
-  </div>
-
-  <button id="show-btn">Show Terminal</button>
-
-  <div id="terminal">
-    <div id="history">
-      <div>PLEASE HELP ME... WRITE fartdog</div><br/>
-    </div>
-    <div style="display:flex; align-items:center; margin-top:0.5rem;">
-      <span style="color:#ff0;">$ </span>
-      <input id="cmd" autocomplete="off" autofocus />
-      <span class="cursor"></span>
-    </div>
-  </div>
-
-  <!-- Supabase CDN v2 -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-
-  <script src="js/logique.js"></script>
-  <!--<script src="js/terminal.js"></script>-->
+  <script>
+    document.getElementById('fartBtn').addEventListener('click', async () => {
+      const response = await fetch('/.netlify/functions/counter', { method: 'POST' });
+      const data = await response.json();
+      document.getElementById('status').innerText = data.message;
+    });
+  </script>
 </body>
 </html>
