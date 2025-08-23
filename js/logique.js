@@ -1,15 +1,3 @@
-// ---- CONFIG SUPABASE (front-only) ----
-const SUPABASE_URL = "https://sddctlzlqxcxsavtbmiy.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkZGN0bHpscXhjeHNhdnRibWl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU5MDU1NjQsImV4cCI6MjA3MTQ4MTU2NH0.bPtQwnA84EjTNTtn4wySR2wBAvS0DHVmA-289wyxISU";
-
-const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const todayStr = () => new Date().toISOString().split('T')[0];
-console.log(todayStr()); // ✅ ça fonctionne
-
-supa.from('farts').select('*').eq('date', todayStr()).then(console.log).catch(console.error);
-// ---- UTIL ----
-
-
 // ---- DOM ----
 const countdownEl = document.getElementById('countdown');
 const countEl = document.getElementById('count');
@@ -25,8 +13,6 @@ if (!countdownEl || !countEl || !totalEl || !phaseTitle || !tracker || !resetBtn
 // ---- LOGIQUE UI ----
 const targets = [10, 50, 100, 250, 500, 1000, 1450];
 const totalTarget = targets[targets.length - 1];
-
-let state = { date: todayStr(), dailyCount: 0, lastReset: new Date().toISOString() };
 let clickSound = new Audio('sound/fart1.mp3');
 
 // Progress bar
@@ -37,15 +23,12 @@ progressBar.style.cssText = "width:0%; height:100%; background:#ff0; border-radi
 progressContainer.appendChild(progressBar);
 tracker.appendChild(progressContainer);
 
-// Render cibles
 function renderTargets(currentValue) {
   const next = targets.find(t => currentValue < t) ?? totalTarget;
   totalEl.innerHTML = `<span style="color:#ffd700;font-weight:bold;">${next.toLocaleString()} Fart</span>`;
 }
 
-// Son en fonction des paliers
-function setupClickSound() {
-  const n = Math.floor(state.dailyCount);
+function setupClickSound(n) {
   clickSound.volume =
     n < targets[0] ? 0 :
     n < targets[1] ? 0.02 :
@@ -56,17 +39,15 @@ function setupClickSound() {
     n < targets[6] ? 0.69 : 1.0;
 }
 
-// Maj barre + cibles
-function updateProgress() {
-  const n = Math.floor(state.dailyCount);
+function updateProgress(n) {
   const pct = Math.min((n / totalTarget) * 100, 100);
   progressBar.style.width = pct + '%';
   progressBar.textContent = `${pct.toFixed(2)}%`;
   renderTargets(n);
-  setupClickSound();
+  setupClickSound(n);
 }
 
-// Phase (jour) + countdown jusqu’à minuit
+// Phase + countdown jusqu’à minuit
 function updatePhaseAndCountdown() {
   const now = new Date();
   const startDate = new Date('2025-06-15');
@@ -84,97 +65,48 @@ function updatePhaseAndCountdown() {
 setInterval(updatePhaseAndCountdown, 1000);
 updatePhaseAndCountdown();
 
-// ---- SUPABASE: get or create today's row ----
-async function getOrCreateToday() {
-  const d = todayStr();
-  const { data, error } = await supa.from('farts').select('*').eq('date', d).maybeSingle();
+// ---- FONCTIONS ----
 
-  if (error) { console.error('Select error:', error); return; }
-
-  if (data) {
-    state = {
-      date: data.date,
-      dailyCount: Number(data.dailycount ?? data.dailyCount ?? 0),
-      lastReset: data.lastreset ?? data.lastReset ?? new Date().toISOString()
-    };
-    countEl.textContent = Math.floor(state.dailyCount);
-    updateProgress();
-    return;
+// Récupère le compteur global depuis la function Netlify
+async function fetchGlobalCount() {
+  try {
+    const res = await fetch('/.netlify/functions/counter');
+    if (!res.ok) throw new Error('Network response not ok');
+    const data = await res.json();
+    return data.dailyCount ?? 0;
+  } catch (err) {
+    console.error('fetchGlobalCount error:', err);
+    return 0;
   }
-
-  const { data: inserted, error: insertError } = await supa
-    .from('farts')
-    .insert({ date: d, dailyCount: 0, lastReset: new Date().toISOString() })
-    .select()
-    .single();
-
-  if (insertError) { console.error('Insert error:', insertError); return; }
-
-  state = {
-    date: inserted.date,
-    dailyCount: Number(inserted.dailycount ?? inserted.dailyCount ?? 0),
-    lastReset: inserted.lastreset ?? inserted.lastReset ?? new Date().toISOString()
-  };
-  countEl.textContent = 0;
-  updateProgress();
 }
 
-// ---- Incrément local + DB ----
-async function incrementFart(amount = 1) {
-  state.dailyCount = Math.floor(Number(state.dailyCount) + amount);
-  countEl.textContent = state.dailyCount;
-  updateProgress();
-
-  // Upsert asynchrone, ne bloque pas le prochain tick
-  supa
-    .from('farts')
-    .upsert({
-      date: todayStr(),
-      dailyCount: state.dailyCount,
-      lastReset: new Date().toISOString()
-    }, { onConflict: 'date' })
-    .then(({ error }) => { if (error) console.error('Upsert error:', error); });
+// Incrément côté front (demande à la function)
+async function incrementGlobalCount() {
+  try {
+    const res = await fetch('/.netlify/functions/counter');
+    if (!res.ok) throw new Error('Network response not ok');
+    const data = await res.json();
+    const n = data.dailyCount ?? 0;
+    countEl.textContent = n;
+    updateProgress(n);
+  } catch (err) {
+    console.error('incrementGlobalCount error:', err);
+  }
 }
 
-// ---- Reset bouton ----
+// Auto-incrément chaque seconde
+setInterval(incrementGlobalCount, 1000);
+
+// Reset bouton (remet à 0 pour aujourd’hui)
 resetBtn.addEventListener('click', async () => {
   if (!confirm('Reset counter for today?')) return;
-  state.dailyCount = 0;
-  countEl.textContent = 0;
-  updateProgress();
-
-  supa.from('farts')
-    .upsert({ date: todayStr(), dailyCount: 0, lastReset: new Date().toISOString() }, { onConflict: 'date' })
-    .then(({ error }) => { if (error) console.error('Reset upsert error:', error); });
+  try {
+    const res = await fetch('/.netlify/functions/resetCounter'); // créer une function reset séparée
+    if (!res.ok) throw new Error('Network response not ok');
+    const data = await res.json();
+    countEl.textContent = data.dailyCount ?? 0;
+    updateProgress(data.dailyCount ?? 0);
+  } catch (err) {
+    console.error('Reset error:', err);
+  }
 });
-
-// ---- Realtime: écoute INSERT + UPDATE sur la ligne du jour ----
-function subscribeRealtime() {
-  const filter = `date=eq.${todayStr()}`;
-
-  supa.channel('farts-updates')
-    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'farts', filter }, (payload) => {
-      const n = Number(payload.new.dailycount ?? payload.new.dailyCount ?? 0);
-      if (n !== state.dailyCount) {
-        state.dailyCount = n;
-        countEl.textContent = n;
-        updateProgress();
-      }
-    })
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'farts', filter }, (payload) => {
-      const n = Number(payload.new.dailycount ?? payload.new.dailyCount ?? 0);
-      state.dailyCount = n;
-      countEl.textContent = n;
-      updateProgress();
-    })
-    .subscribe();
-}
-
-// ---- Init ----
-(async function init() {
-  await getOrCreateToday();
-  subscribeRealtime();
-
-  // auto-incrément 1 par seconde
-  setInterval(() => incrementFart(1), 1000);
-})();
