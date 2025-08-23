@@ -2,65 +2,40 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Test Supabase Farts</title>
+  <title>FartDog Tracker</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Test Supabase Farts</h1>
-  <div id="count">Chargement...</div>
+  <h1 class="phase-title">Phase 1</h1>
+  <div id="countdown">00:00:00</div>
+
+  <div class="logo-container">
+    <img src="img/fartdogwithoutfart.png" alt="FartDog Logo" class="main-logo"/>
+  </div>
+
+  <div id="tracker">
+    <div> <span id="count">0</span> / <span id="total-target"></span> </div>
+    <button id="reset-btn">Reset</button>
+  </div>
+
+  <button id="show-btn">Show Terminal</button>
+
+  <div id="terminal">
+    <div id="history">
+      <div>PLEASE HELP ME... WRITE fartdog</div><br/>
+    </div>
+    <div style="display:flex; align-items:center; margin-top:0.5rem;">
+      <span style="color:#ff0;">$ </span>
+      <input id="cmd" autocomplete="off" autofocus />
+      <span class="cursor"></span>
+    </div>
+  </div>
 
   <!-- Supabase CDN v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script>
-    // ---- CONFIG SUPABASE ----
-    const SUPABASE_URL = "https://sddctlzlqxcxsavtbmiy.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkZGN0bHpscXhjeHNhdnRibWl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU5MDU1NjQsImV4cCI6MjA3MTQ4MTU2NH0.bPtQwnA84EjTNTtn4wySR2wBAvS0DHVmA-289wyxISU";
-    
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const todayStr = () => new Date().toISOString().split('T')[0];
-    const countEl = document.getElementById('count');
-
-    async function getOrCreateToday() {
-      const today = todayStr();
-
-      // 1) Lire la ligne du jour
-      const { data, error } = await supabase
-        .from('farts')
-        .select('*')
-        .eq('date', today)
-        .maybeSingle();
-
-      if (error) {
-        countEl.textContent = 'Erreur: ' + error.message;
-        console.error(error);
-        return;
-      }
-
-      if (data) {
-        countEl.textContent = `dailyCount: ${data.dailyCount}`;
-        console.log('Ligne existante:', data);
-        return;
-      }
-
-      // 2) Créer la ligne si elle n'existe pas
-      const { data: inserted, error: insertError } = await supabase
-        .from('farts')
-        .insert({ date: today, dailyCount: 0 })
-        .select()
-        .single();
-
-      if (insertError) {
-        countEl.textContent = 'Erreur insert: ' + insertError.message;
-        console.error(insertError);
-        return;
-      }
-
-      countEl.textContent = `dailyCount: ${inserted.dailyCount}`;
-      console.log('Nouvelle ligne créée:', inserted);
-    }
-
-    getOrCreateToday();
-  </script>
+  <script src="js/logique.js"></script>
+  <!--<script src="js/terminal.js"></script>-->
 </body>
 </html>
