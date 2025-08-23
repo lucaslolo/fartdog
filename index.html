@@ -2,40 +2,52 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>FartDog Tracker</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Test Supabase Farts</title>
 </head>
 <body>
-  <h1 class="phase-title">Phase 1</h1>
-  <div id="countdown">00:00:00</div>
+  <h1>Test Supabase Farts</h1>
+  <pre id="output"></pre>
 
-  <div class="logo-container">
-    <img src="img/fartdogwithoutfart.png" alt="FartDog Logo" class="main-logo"/>
-  </div>
-
-  <div id="tracker">
-    <div> <span id="count">0</span> / <span id="total-target"></span> </div>
-    <button id="reset-btn">Reset</button>
-  </div>
-
-  <button id="show-btn">Show Terminal</button>
-
-  <div id="terminal">
-    <div id="history">
-      <div>PLEASE HELP ME... WRITE fartdog</div><br/>
-    </div>
-    <div style="display:flex; align-items:center; margin-top:0.5rem;">
-      <span style="color:#ff0;">$ </span>
-      <input id="cmd" autocomplete="off" autofocus />
-      <span class="cursor"></span>
-    </div>
-  </div>
-
-  <!-- Supabase CDN v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = "https://sddctlzlqxcxsavtbmiy.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkZGN0bHpscXhjeHNhdGJtaXkiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc1NTkwNTU2NCwiZXhwIjoyMDcxNDgxNTY0fQ.bPtQwnA84EjTNTtn4wySR2wBAvS0DHVmA-289wyxISU";
 
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const output = document.getElementById('output');
 
-  <script src="js/logique.js"></script>
-  <!--<script src="js/terminal.js"></script>-->
+    async function checkToday() {
+      const today = new Date().toISOString().split('T')[0];
+      
+      // SELECT pour la journée
+      let { data, error } = await supabase.from('farts').select('*').eq('date', today).maybeSingle();
+
+      if (error) {
+        output.textContent = "Error: " + JSON.stringify(error, null, 2);
+        return;
+      }
+
+      if (data) {
+        output.textContent = "Ligne du jour trouvée :\n" + JSON.stringify(data, null, 2);
+      } else {
+        output.textContent = "Aucune ligne pour aujourd'hui, création en cours…";
+
+        // INSERT si pas existant
+        const { data: inserted, error: insertError } = await supabase
+          .from('farts')
+          .insert({ date: today, dailyCount: 0, lastReset: new Date().toISOString() })
+          .select()
+          .maybeSingle();
+
+        if (insertError) {
+          output.textContent = "Erreur à l'insertion : " + JSON.stringify(insertError, null, 2);
+        } else {
+          output.textContent = "Ligne créée :\n" + JSON.stringify(inserted, null, 2);
+        }
+      }
+    }
+
+    checkToday();
+  </script>
 </body>
 </html>
