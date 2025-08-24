@@ -23,7 +23,7 @@ export async function handler(event, context) {
     if (!data) {
       const { data: inserted, error: insertError } = await supabaseClient
         .from('farts')
-        .insert({ date: today, dailyCount: 0, lastReset: new Date().toISOString() })
+        .insert({ date: today, dailycount: 0, lastreset: new Date().toISOString() })
         .select()
         .single();
 
@@ -32,15 +32,15 @@ export async function handler(event, context) {
     }
 
     // Incrément toutes les minutes (si au moins 1 min depuis le dernier update)
-    const lastUpdate = new Date(data.lastReset);
+    const lastUpdate = new Date(data.lastreset);
     const now = new Date();
-    let newCount = data.dailyCount;
+    let newCount = data.dailycount;
 
     if (now - lastUpdate >= 60000) { // 1 min
       newCount += 1;
       const { error: updateError } = await supabaseClient
         .from('farts')
-        .update({ dailyCount: newCount, lastReset: now.toISOString() })
+        .update({ dailycount: newCount, lastreset: now.toISOString() })
         .eq('date', today);
 
       if (updateError) throw new Error(updateError.message);
