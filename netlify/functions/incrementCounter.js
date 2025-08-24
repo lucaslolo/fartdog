@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
 export async function handler() {
-  const increment = 30;
+  const increment = 60;
 
   const { data, error } = await supabase.rpc('increment_counter', { inc: increment });
 

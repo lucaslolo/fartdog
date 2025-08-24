@@ -1,6 +1,6 @@
 let currentValue = 0;
 let targetValue = 0;
-let incrementSpeed = 1000; // 1 sec
+let incrementSpeed = 1000; // 1 second
 const display = document.getElementById('counter');
 
 async function fetchCounter() {
@@ -17,6 +17,6 @@ function animateCounter() {
   setTimeout(animateCounter, incrementSpeed);
 }
 
-setInterval(fetchCounter, 30000); // sync every 30 sec
+setInterval(fetchCounter, 60000); // sync every 60 sec
 fetchCounter();
 animateCounter();
