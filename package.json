@@ -1,5 +1,5 @@
 {
-  "name": "fartdog",
+  "name": "counter-app",
   "version": "1.0.0",
   "scripts": {
     "build": "echo 'No build step required'"

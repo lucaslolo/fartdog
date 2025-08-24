@@ -1,6 +1,11 @@
 [build]
+  publish = "public"
   functions = "netlify/functions"
 
-[[scheduled-functions]]
-function = "increment-counter"
-schedule = "*/1 * * * *"  # toutes les minutes
+[[plugins]]
+  package = "@netlify/plugin-scheduled"
+
+# Cron job toutes les 30 secondes impossible (min = 1 min), donc on met 1 min
+[[scheduled]]
+  path = "/.netlify/functions/incrementCounter"
+  schedule = "*/1 * * * *"
