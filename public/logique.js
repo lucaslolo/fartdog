@@ -15,14 +15,14 @@ const totalEl = document.getElementById('total-target');
 let currentCount = 0;
 
 // -------------------------
-// Récupération du compteur depuis le backend
+// Récupération du compteur depuis Netlify Function
 // -------------------------
 async function fetchCount() {
   try {
     const res = await fetch('/.netlify/functions/counter');
     if (!res.ok) throw new Error('Network response not ok');
     const data = await res.json();
-    return data.dailyCount;
+    return data.dailyCount; // correspond à ce que retourne la fonction Netlify
   } catch (err) {
     console.error('fetchCount error:', err);
     return currentCount;
@@ -60,11 +60,10 @@ async function initCounter() {
 }
 
 // -------------------------
-// Reset manuel
-// -------------------------
+// Reset manuel (optionnel)
 document.getElementById('reset-btn').addEventListener('click', async () => {
   try {
-    await fetch('/.netlify/functions/counter-reset');
+    await fetch('/.netlify/functions/counter-reset'); // crée si tu as une fonction reset
     currentCount = 0;
     countEl.textContent = 0;
   } catch (err) {
