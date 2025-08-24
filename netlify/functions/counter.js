@@ -1,14 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 
+// Crée le client Supabase avec la clé service (privée, côté serveur)
 const supabaseClient = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY // clé service Supabase (privée)
+  process.env.SUPABASE_SERVICE_KEY
 );
 
 export async function handler(event, context) {
   try {
     const today = new Date().toISOString().split('T')[0];
 
+    // Récupère la ligne du jour, s'il y en a une
     let { data, error } = await supabaseClient
       .from('farts')
       .select('*')
@@ -17,30 +19,45 @@ export async function handler(event, context) {
 
     if (error) throw new Error(error.message);
 
+    // Si aucune ligne du jour, créer une nouvelle
     if (!data) {
       const { data: inserted, error: insertError } = await supabaseClient
         .from('farts')
         .insert({ date: today, dailyCount: 0, lastReset: new Date().toISOString() })
         .select()
         .single();
+
       if (insertError) throw new Error(insertError.message);
       data = inserted;
     }
 
-    // Incrément de 1 toutes les minutes côté Netlify
+    // Incrément toutes les minutes (si au moins 1 min depuis le dernier update)
     const lastUpdate = new Date(data.lastReset);
     const now = new Date();
     let newCount = data.dailyCount;
+
     if (now - lastUpdate >= 60000) { // 1 min
       newCount += 1;
-      await supabaseClient
+      const { error: updateError } = await supabaseClient
         .from('farts')
         .update({ dailyCount: newCount, lastReset: now.toISOString() })
         .eq('date', today);
+
+      if (updateError) throw new Error(updateError.message);
     }
 
-    return { statusCode: 200, body: JSON.stringify({ dailyCount: newCount }) };
+    // Retour JSON correct
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dailyCount: newCount })
+    };
   } catch (err) {
-    return { statusCode: 500, body: err.message };
+    console.error('Netlify function error:', err);
+    return {
+      statusCode: 500,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error: err.message })
+    };
   }
 }
