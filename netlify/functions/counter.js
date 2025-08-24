@@ -28,7 +28,8 @@ export async function handler(event, context) {
     if (!data) {
       const { data: inserted, error: insertError } = await supabaseClient
         .from('farts')
-        .insert({ date: today, dailycount: 0, lastreset: new Date().toISOString() })
+        .insert({ date: today, dailyCount: 0, lastReset: new Date().toISOString()})
+        //.insert({ date: today, dailyCount: 0, lastReset: new Date().toISOString(), averageClickMarketcapPerMinute: 0 })
         .select()
         .single();
       if (insertError) throw new Error(insertError.message);
@@ -36,20 +37,24 @@ export async function handler(event, context) {
     }
 
     // Récupère la date de la dernière mise à jour et l'heure actuelle
-    const lastUpdate = new Date(data.lastreset);
+    const lastUpdate = new Date(data.lastReset);
     const now = new Date();
-    let newCount = data.dailycount;
+    let newCount = data.dailyCount;
+    //let averageClickMarketcapPerMinute = data.averageClickMarketcapPerMinute;
 
-    // Si plus de 1 seconde s'est écoulée depuis la dernière mise à jour, incrémente le compteur
-    if (now - lastUpdate >= 1000) {
+    // Si plus de 60 secondes se sont écoulées depuis la dernière mise à jour, incrémente le compteur
+    if (now - lastUpdate >= 60000) {
       newCount += 1;
+      //newCount += averageClickMarketcapPerMinute;
       const { error: updateError } = await supabaseClient
         .from('farts')
-        .update({ dailycount: newCount, lastreset: now.toISOString() })
+        .update({ dailyCount: newCount, lastReset: now.toISOString()})
+        //.update({ dailyCount: newCount, lastReset: now.toISOString(), averageClickMarketcapPerMinute: 0 })
         .eq('date', today);
       if (updateError) throw new Error(updateError.message);
-      data.dailycount = newCount;
-      data.lastreset = now.toISOString();
+      data.dailyCount = newCount;
+      data.lastReset = now.toISOString();
+      //data.averageClickMarketcapPerMinute = 0;
     }
 
     // Retourne le dailyCount actuel au client
