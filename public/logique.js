@@ -15,13 +15,19 @@ const totalEl = document.getElementById('total-target');
 let currentCount = 0;
 
 // -------------------------
-// Récupération du compteur depuis Netlify Function
+// Récupération du compteur depuis Netlify Function avec debug
 // -------------------------
 async function fetchCount() {
   try {
+    console.log('Fetching count from server...');
     const res = await fetch('/.netlify/functions/counter');
+    console.log('Response status:', res.status);
+
     if (!res.ok) throw new Error('Network response not ok');
+
     const data = await res.json();
+    console.log('Data received:', data);
+
     return data.dailyCount; // correspond à ce que retourne la fonction Netlify
   } catch (err) {
     console.error('fetchCount error:', err);
@@ -30,9 +36,10 @@ async function fetchCount() {
 }
 
 // -------------------------
-// Animation du compteur
+// Animation du compteur avec debug
 // -------------------------
 function animateCount(target) {
+  console.log('Animating count from', currentCount, 'to', target);
   const step = () => {
     if (currentCount < target) {
       currentCount += 1;
@@ -47,9 +54,10 @@ function animateCount(target) {
 }
 
 // -------------------------
-// Initialisation et synchronisation toutes les 30 secondes
+// Initialisation et sync toutes les 30 secondes avec debug
 // -------------------------
 async function initCounter() {
+  console.log('Initializing counter...');
   const backendCount = await fetchCount();
   animateCount(backendCount);
 
@@ -60,14 +68,17 @@ async function initCounter() {
 }
 
 // -------------------------
-// Reset manuel (optionnel)
+// Reset manuel (optionnel) avec debug
+// -------------------------
 document.getElementById('reset-btn').addEventListener('click', async () => {
   try {
-    await fetch('/.netlify/functions/counter-reset'); // crée si tu as une fonction reset
+    console.log('Reset button clicked, calling counter-reset...');
+    await fetch('/.netlify/functions/counter-reset');
     currentCount = 0;
     countEl.textContent = 0;
+    console.log('Counter reset to 0');
   } catch (err) {
-    console.error(err);
+    console.error('Reset error:', err);
   }
 });
 
