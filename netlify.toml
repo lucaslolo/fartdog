@@ -1,6 +1,13 @@
 [build]
   publish = "public"
   functions = "netlify/functions"
+  command = "echo 'No build step required'"
 
-[functions."increment"]
-  schedule = "* * * * *"
+[functions]
+  # Fonction qui s'incrémente toutes les minutes
+  [functions.counter]
+    schedule = "*/1 * * * *"  # chaque minute
+
+  # Fonction de reset (manuelle) si nécessaire
+  [functions.counter-reset]
+    schedule = ""  # vide car reset manuel uniquement

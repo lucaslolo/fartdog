@@ -2,16 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Global Counter</title>
-  <style>
-    body { font-family: Arial; text-align: center; margin-top: 100px; }
-    #counter { font-size: 80px; font-weight: bold; }
-  </style>
+  <title>FartDog Tracker</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Global Counter</h1>
-  <div id="counter">0</div>
-  <script src="script.js"></script>
+  <h1 class="phase-title">Phase 1</h1>
+  <div id="countdown">00:00:00</div>
+
+  <div class="logo-container">
+    <img src="img/fartdogwithoutfart.png" alt="FartDog Logo" class="main-logo"/>
+  </div>
+
+  <div id="tracker">
+    <div>
+      <span id="count">0</span> / <span id="total-target">1000</span>
+    </div>
+    <button id="reset-btn">Reset</button>
+  </div>
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="logique.js"></script>
 </body>
 </html>
