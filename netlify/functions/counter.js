@@ -40,8 +40,8 @@ export async function handler(event, context) {
     const now = new Date();
     let newCount = data.dailycount;
 
-    // Si plus de 10 secondes se sont écoulées depuis la dernière mise à jour, incrémente le compteur
-    if (now - lastUpdate >= 10000) {
+    // Si plus de 1 seconde s'est écoulée depuis la dernière mise à jour, incrémente le compteur
+    if (now - lastUpdate >= 1000) {
       newCount += 1;
       const { error: updateError } = await supabaseClient
         .from('farts')
