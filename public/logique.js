@@ -43,20 +43,6 @@ function animateCount(target) {
   step();
 }
 
-
-async function fetchMarketCap() {
-    try {
-      const response = await fetch(`https://api.dexscreener.com/latest/dex/pairs/${blockchain}/${tokenAddress}`);
-      const dataResp = await response.json();
-      currentMarketCap = dataResp?.pairs?.[0]?.marketCap || 100000000;
-      //clicksPerSecond = currentMarketCap / secondsInDay;
-      //setupClickSound();
-    } catch (error) {
-  console.error('Error while fetching market cap:', error);
-    }
-  }
-  fetchMarketCap();
-
 // Initialise le compteur et met à jour toutes les 30 secondes
 async function initCounter() {
   // Récupère la valeur initiale du backend
@@ -88,3 +74,24 @@ document.getElementById('reset-btn').addEventListener('click', async () => {
 
 // Lance l'initialisation du compteur au chargement de la page
 initCounter();
+
+async function fetchMarketCap() {
+  try {
+    const response = await fetch(`https://api.dexscreener.com/latest/dex/pairs/${blockchain}/${tokenAddress}`);
+    const dataResp = await response.json();
+
+    // Vérifie la structure et récupère le market cap
+    currentMarketCap = dataResp?.pairs?.[0]?.marketCapUsd || 100000000;
+
+    // Affiche dans le DOM
+    marketCapEl.textContent = currentMarketCap.toLocaleString();
+    console.log('Market Cap:', currentMarketCap);
+
+  } catch (error) {
+    console.error('Error while fetching market cap:', error);
+  }
+}
+
+fetchMarketCap();
+
+
