@@ -3,4 +3,4 @@
   functions = "netlify/functions"
 
 [functions."increment"]
-  schedule = "@every 1m"
+  schedule = "* * * * *"
