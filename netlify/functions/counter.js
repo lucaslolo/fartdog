@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
+const supabaseClient = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY // clé service Supabase (privée)
 );
@@ -9,7 +9,7 @@ export async function handler(event, context) {
   try {
     const today = new Date().toISOString().split('T')[0];
 
-    let { data, error } = await supabase
+    let { data, error } = await supabaseClient
       .from('farts')
       .select('*')
       .eq('date', today)
@@ -18,7 +18,7 @@ export async function handler(event, context) {
     if (error) throw new Error(error.message);
 
     if (!data) {
-      const { data: inserted, error: insertError } = await supabase
+      const { data: inserted, error: insertError } = await supabaseClient
         .from('farts')
         .insert({ date: today, dailyCount: 0, lastReset: new Date().toISOString() })
         .select()
@@ -33,7 +33,7 @@ export async function handler(event, context) {
     let newCount = data.dailyCount;
     if (now - lastUpdate >= 60000) { // 1 min
       newCount += 1;
-      await supabase
+      await supabaseClient
         .from('farts')
         .update({ dailyCount: newCount, lastReset: now.toISOString() })
         .eq('date', today);
