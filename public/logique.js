@@ -1,14 +1,22 @@
+// -------------------------
+// Configuration Supabase
+// -------------------------
 const SUPABASE_URL = 'https://sddctlzlqxcxsavtbmiy.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkZGN0bHpscXhjeHNhdnRibWl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU5MDU1NjQsImV4cCI6MjA3MTQ4MTU2NH0.bPtQwnA84EjTNTtn4wySR2wBAvS0DHVmA-289wyxISU';
 
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Correction : nouvelle variable pour le client Supabase
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// -------------------------
+// Sélecteurs DOM
+// -------------------------
 const countEl = document.getElementById('count');
 const totalEl = document.getElementById('total-target');
-
 let currentCount = 0;
 
-// Fonction pour récupérer le compteur depuis le backend
+// -------------------------
+// Récupération du compteur depuis le backend
+// -------------------------
 async function fetchCount() {
   try {
     const res = await fetch('/.netlify/functions/counter');
@@ -21,7 +29,9 @@ async function fetchCount() {
   }
 }
 
-// Smooth counter vers la valeur backend
+// -------------------------
+// Animation du compteur
+// -------------------------
 function animateCount(target) {
   const step = () => {
     if (currentCount < target) {
@@ -36,17 +46,22 @@ function animateCount(target) {
   step();
 }
 
-// Initialisation et sync toutes les 30 secondes
+// -------------------------
+// Initialisation et synchronisation toutes les 30 secondes
+// -------------------------
 async function initCounter() {
   const backendCount = await fetchCount();
   animateCount(backendCount);
+
   setInterval(async () => {
     const newCount = await fetchCount();
     animateCount(newCount);
   }, 30000); // toutes les 30 secondes
 }
 
-// Reset manuel (optionnel)
+// -------------------------
+// Reset manuel
+// -------------------------
 document.getElementById('reset-btn').addEventListener('click', async () => {
   try {
     await fetch('/.netlify/functions/counter-reset');
@@ -57,4 +72,7 @@ document.getElementById('reset-btn').addEventListener('click', async () => {
   }
 });
 
+// -------------------------
+// Lancement du compteur
+// -------------------------
 initCounter();
