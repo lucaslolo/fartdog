@@ -28,8 +28,7 @@ export async function handler(event, context) {
     if (!data) {
       const { data: inserted, error: insertError } = await supabaseClient
         .from('farts')
-        .insert({ date: today, dailyCount: 0, lastReset: new Date().toISOString()})
-        //.insert({ date: today, dailyCount: 0, lastReset: new Date().toISOString(), averageClickMarketcapPerMinute: 0 })
+        .insert({ date: today, dailycount: 0, lastreset: new Date().toISOString() })
         .select()
         .single();
       if (insertError) throw new Error(insertError.message);
@@ -37,24 +36,20 @@ export async function handler(event, context) {
     }
 
     // Récupère la date de la dernière mise à jour et l'heure actuelle
-    const lastUpdate = new Date(data.lastReset);
+    const lastUpdate = new Date(data.lastreset);
     const now = new Date();
-    let newCount = data.dailyCount;
-    //let averageClickMarketcapPerMinute = data.averageClickMarketcapPerMinute;
+    let newCount = data.dailycount;
 
-    // Si plus de 60 secondes se sont écoulées depuis la dernière mise à jour, incrémente le compteur
-    if (now - lastUpdate >= 60000) {
+    // Si plus de 1 seconde s'est écoulée depuis la dernière mise à jour, incrémente le compteur
+    if (now - lastUpdate >= 1000) {
       newCount += 1;
-      //newCount += averageClickMarketcapPerMinute;
       const { error: updateError } = await supabaseClient
         .from('farts')
-        .update({ dailyCount: newCount, lastReset: now.toISOString()})
-        //.update({ dailyCount: newCount, lastReset: now.toISOString(), averageClickMarketcapPerMinute: 0 })
+        .update({ dailycount: newCount, lastreset: now.toISOString() })
         .eq('date', today);
       if (updateError) throw new Error(updateError.message);
-      data.dailyCount = newCount;
-      data.lastReset = now.toISOString();
-      //data.averageClickMarketcapPerMinute = 0;
+      data.dailycount = newCount;
+      data.lastreset = now.toISOString();
     }
 
     // Retourne le dailyCount actuel au client
@@ -64,7 +59,7 @@ export async function handler(event, context) {
       body: JSON.stringify({ dailyCount: data.dailycount })
     };
   } catch (err) {
-    // Gestion des erreurs : retourne le message d'erreur au clientf
+    // Gestion des erreurs : retourne le message d'erreur au client
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
