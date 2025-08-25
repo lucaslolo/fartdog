@@ -1,21 +1,37 @@
 const countEl = document.getElementById('count');
+const marketCapEl = document.getElementById('marketcap');
+const tokenAddress = 'EmidmqwsaEHV2qunR3brnQTyvWS9q7BM8CXyW9NmPrd';
+const blockchain = 'solana';
+
 let currentCount = 0;
+let marketcap = 0;
 
-async function fetchCount() {
+async function fetchMarketCap() {
   try {
-    console.log('Fetching count from server...');
-    const res = await fetch('/.netlify/functions/counter');
-    console.log('Response status:', res.status);
-    if (!res.ok) throw new Error('Network response not ok');
+    const response = await fetch(`https://api.dexscreener.com/latest/dex/pairs/${blockchain}/${tokenAddress}`);
+    if (!response.ok) throw new Error('Erreur API DexScreener');
 
-    const data = await res.json();
-    console.log('Data received:', data);
-    return data.dailyCount;
-  } catch (err) {
-    console.error('fetchCount error:', err);
-    return currentCount;
+    const dataResp = await response.json();
+
+    // Si la donnée existe
+    marketcap = dataResp?.pairs?.[0]?.marketCap || 100000000;
+    clicksPerSecond = marketcap / secondsInDay;
+
+    // Mise à jour du DOM
+    if (marketCapEl) {
+      marketCapEl.textContent = `Marketcap: $${marketcap.toLocaleString()}`;
+    }
+
+    console.log('Marketcap:', marketcap);
+
+  } catch (error) {
+    console.error('Erreur lors de la récupération du market cap:', error);
   }
 }
+
+// Lance la récupération du Market Cap et mise à jour auto toutes les 30 sec
+fetchMarketCap();
+setInterval(fetchMarketCap, 30000);
 
 function animateCount(target) {
   const step = () => {
