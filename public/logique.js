@@ -22,7 +22,7 @@ async function fetchClickPerMinute() {
 
     const dataResp = await response.json();
 
-    //marketcap = dataResp?.pairs?.[0]?.marketCap || 100000000;
+    //marketcap = dataResp?.pairs?.[0]?.marketCap || 100000000;dd
     marketcap = 1000000;
     clicksPerSecond = marketcap / secondsInDay;
     clicksPerMinute = clicksPerSecond * 60;
