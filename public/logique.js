@@ -8,7 +8,9 @@ const blockchain = 'solana';
 
 let currentCount = 0;
 let marketcap = 0;
-
+let secondsInDay = 86400;
+let clicksPerSecond = 0;
+let clicksPerMinute = 0;
 
 async function fetchClickPerMinute() {
   try {
