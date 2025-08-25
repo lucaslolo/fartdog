@@ -36,9 +36,9 @@ async function fetchClickPerMinute() {
   }
 }
 
-// Lance la récupération et mise à jour toutes les 30 secondes
+// Lance la récupération et mise à jour toutes les 60 secondes par rapport au serveur
 fetchClickPerMinute();
-setInterval(fetchClickPerMinute, 30000);
+setInterval(fetchClickPerMinute, 60000);
 
 // ----- Fetch compteur backend -----
 async function fetchCount() {
