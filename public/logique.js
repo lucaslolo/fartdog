@@ -1,34 +1,33 @@
-// Récupère l'élément du DOM qui affiche le compteur
+// ----- Éléments du DOM -----
 const countEl = document.getElementById('count');
 const marketCapEl = document.getElementById('marketcap');
 const tokenAddress = 'EmidmqwsaEHV2qunR3brnQTyvWS9q7BM8CXyW9NmPrd';
 const blockchain = 'solana';
 
-// Variable pour stocker la valeur actuelle du compteur
+// ----- Variables globales -----
 let currentCount = 0;
-let currentMarketCap = 0;
+let marketcap = 0;
+const secondsInDay = 86400; // Pour calculer clicksPerSecond
+let clicksPerSecond = 0;
 
-// Fonction pour récupérer le compteur du backend (Netlify Function)
+// ----- Fonction pour récupérer le compteur -----
 async function fetchCount() {
   try {
     console.log('Fetching count from server...');
-    // Appel à la Netlify Function qui retourne le dailyCount
     const res = await fetch('/.netlify/functions/counter');
     console.log('Response status:', res.status);
     if (!res.ok) throw new Error('Network response not ok');
 
-    // Récupère la donnée JSON
     const data = await res.json();
     console.log('Data received:', data);
     return data.dailyCount;
   } catch (err) {
-    // En cas d'erreur, log et retourne la valeur actuelle
     console.error('fetchCount error:', err);
     return currentCount;
   }
 }
 
-// Animation pour faire évoluer le compteur affiché jusqu'à la valeur cible
+// ----- Animation du compteur -----
 function animateCount(target) {
   const step = () => {
     if (currentCount < target) {
@@ -43,55 +42,57 @@ function animateCount(target) {
   step();
 }
 
-// Initialise le compteur et met à jour toutes les 30 secondes
+// ----- Initialisation du compteur -----
 async function initCounter() {
-  // Récupère la valeur initiale du backend
   const backendCount = await fetchCount();
   animateCount(backendCount);
 
-  // Met à jour le compteur toutes les 30 secondes
   setInterval(async () => {
     const newCount = await fetchCount();
     animateCount(newCount);
   }, 30000);
 }
 
-// Ajoute un listener pour le bouton de reset du compteur
+// ----- Reset compteur -----
 document.getElementById('reset-btn').addEventListener('click', async () => {
   try {
     console.log('Reset button clicked...');
-    // Appel à la Netlify Function pour reset le compteur
     await fetch('/.netlify/functions/counter-reset');
-    // Remet le compteur local à zéro
     currentCount = 0;
     countEl.textContent = 0;
     console.log('Counter reset');
   } catch (err) {
-    // Gestion d'erreur lors du reset
     console.error('Reset error:', err);
   }
 });
 
-// Lance l'initialisation du compteur au chargement de la page
+// Lance l'initialisation du compteur
 initCounter();
 
+// ----- Récupération du Market Cap -----
 async function fetchMarketCap() {
   try {
     const response = await fetch(`https://api.dexscreener.com/latest/dex/pairs/${blockchain}/${tokenAddress}`);
+    if (!response.ok) throw new Error('Erreur API DexScreener');
+
     const dataResp = await response.json();
 
-    // Vérifie la structure et récupère le market cap
-    currentMarketCap = dataResp?.pairs?.[0]?.marketCapUsd || 100000000;
+    // Si la donnée existe
+    marketcap = dataResp?.pairs?.[0]?.marketCap || 100000000;
+    clicksPerSecond = marketcap / secondsInDay;
 
-    // Affiche dans le DOM
-    marketCapEl.textContent = currentMarketCap.toLocaleString();
-    console.log('Market Cap:', currentMarketCap);
+    // Mise à jour du DOM
+    if (marketCapEl) {
+      marketCapEl.textContent = `Marketcap: $${marketcap.toLocaleString()}`;
+    }
+
+    console.log('Marketcap:', marketcap);
 
   } catch (error) {
-    console.error('Error while fetching market cap:', error);
+    console.error('Erreur lors de la récupération du market cap:', error);
   }
 }
 
+// Lance la récupération du Market Cap et mise à jour auto toutes les 30 sec
 fetchMarketCap();
-
-
+setInterval(fetchMarketCap, 30000);
