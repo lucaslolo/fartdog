@@ -8,7 +8,7 @@ const supabaseClient = createClient(
 );
 
 
-// Fonction handler appelée par Netlify à chaque requête
+// Fonction handler appelée par Netlify à chaque requête 
 export async function handler(event, context) {
   try {
     // Récupère la date du jour au format YYYY-MM-DD
