@@ -91,7 +91,7 @@ async function initCounter() {
   setInterval(async () => {
     const newCount = await fetchCount();
     currentCount = newCount;
-  }, 30000);
+  }, 60000);
 }
 
 initCounter();
