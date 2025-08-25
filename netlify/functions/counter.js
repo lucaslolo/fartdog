@@ -8,7 +8,7 @@ const supabaseClient = createClient(
 );
 
 
-// Fonction handler appelée par Netlify à chaque requête 
+// Fonction handler appelée par Netlify à chaque requête
 export async function handler(event, context) {
   try {
     // Récupère la date du jour au format YYYY-MM-DD
@@ -64,7 +64,7 @@ export async function handler(event, context) {
       body: JSON.stringify({ dailyCount: data.dailycount })
     };
   } catch (err) {
-    // Gestion des erreurs : retourne le message d'erreur au client
+    // Gestion des erreurs : retourne le message d'erreur au clientf
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
