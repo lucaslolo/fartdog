@@ -2,6 +2,7 @@ const countEl = document.getElementById('count');
 const marketCapEl = document.getElementById('marketcap');
 const clickPerSecondeEl = document.getElementById('clickperseconde');
 const clickPerMinuteEl = document.getElementById('clickperminute');
+const resetBtn = document.getElementById('reset-btn');
 
 const tokenAddress = 'EmidmqwsaEHV2qunR3brnQTyvWS9q7BM8CXyW9NmPrd';
 const blockchain = 'solana';
@@ -11,7 +12,9 @@ let marketcap = 0;
 let secondsInDay = 86400;
 let clicksPerSecond = 0;
 let clicksPerMinute = 0;
+let lastTimestamp = null;
 
+// ----- Fetch Market Cap -----
 async function fetchClickPerMinute() {
   try {
     const response = await fetch(`https://api.dexscreener.com/latest/dex/pairs/${blockchain}/${tokenAddress}`);
@@ -19,41 +22,29 @@ async function fetchClickPerMinute() {
 
     const dataResp = await response.json();
 
-    // Si la donnée existe
     marketcap = dataResp?.pairs?.[0]?.marketCap || 100000000;
     clicksPerSecond = marketcap / secondsInDay;
     clicksPerMinute = clicksPerSecond * 60;
 
-    // Mise à jour du DOM
-    if (marketCapEl) {
-      marketCapEl.textContent = `Marketcap: $${marketcap.toLocaleString()}`;
-    }
-    if (clickPerSecondeEl) {
-      clickPerSecondeEl.textContent = `Clicks per second: ${clicksPerSecond.toLocaleString()}`;
-    }
-    if (clickPerMinuteEl) {
-      clickPerMinuteEl.textContent = `Clicks per minute: ${clicksPerMinute.toLocaleString()}`;
-    }
+    if (marketCapEl) marketCapEl.textContent = `Marketcap: $${marketcap.toLocaleString()}`;
+    if (clickPerSecondeEl) clickPerSecondeEl.textContent = `Clicks per second: ${clicksPerSecond.toFixed(2)}`;
+    if (clickPerMinuteEl) clickPerMinuteEl.textContent = `Clicks per minute: ${clicksPerMinute.toFixed(2)}`;
 
   } catch (error) {
     console.error('Erreur lors de la récupération du market cap:', error);
   }
 }
 
-// Lance la récupération du Market Cap et mise à jour auto toutes les 30 sec
+// Lance la récupération et mise à jour toutes les 30 secondes
 fetchClickPerMinute();
 setInterval(fetchClickPerMinute, 30000);
 
-
+// ----- Fetch compteur backend -----
 async function fetchCount() {
   try {
-    console.log('Fetching count from server...');
     const res = await fetch('/.netlify/functions/counter');
-    console.log('Response status:', res.status);
     if (!res.ok) throw new Error('Network response not ok');
-
     const data = await res.json();
-    console.log('Data received:', data);
     return data.dailyCount;
   } catch (err) {
     console.error('fetchCount error:', err);
@@ -61,40 +52,45 @@ async function fetchCount() {
   }
 }
 
-function animateCount(target) {
-  const step = () => {
-    if (currentCount < target) {
-      currentCount += 1;
-      countEl.textContent = currentCount;
-      requestAnimationFrame(step);
-    } else if (currentCount > target) {
-      currentCount = target;
-      countEl.textContent = currentCount;
-    }
-  };
-  step();
+// ----- Animation compteur avec clicksPerSecond -----
+function animateCount() {
+  function step(timestamp) {
+    if (!lastTimestamp) lastTimestamp = timestamp;
+    const delta = (timestamp - lastTimestamp) / 1000; // secondes écoulées
+    lastTimestamp = timestamp;
+
+    currentCount += clicksPerSecond * delta; // incrémente selon le market cap
+    countEl.textContent = Math.floor(currentCount);
+
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
 }
 
+// ----- Reset -----
+if (resetBtn) {
+  resetBtn.addEventListener('click', async () => {
+    try {
+      await fetch('/.netlify/functions/counter-reset');
+      currentCount = 0;
+      countEl.textContent = 0;
+      console.log('Compteur réinitialisé');
+    } catch (err) {
+      console.error('Reset error:', err);
+    }
+  });
+}
+
+// ----- Initialisation -----
 async function initCounter() {
   const backendCount = await fetchCount();
-  animateCount(backendCount);
+  currentCount = backendCount; // initialise le compteur
+  animateCount();
 
   setInterval(async () => {
     const newCount = await fetchCount();
-    animateCount(newCount);
+    currentCount = newCount;
   }, 30000);
 }
-
-document.getElementById('reset-btn').addEventListener('click', async () => {
-  try {
-    console.log('Reset button clicked...');
-    await fetch('/.netlify/functions/counter-reset');
-    currentCount = 0;
-    countEl.textContent = 0;
-    console.log('Counter reset');
-  } catch (err) {
-    console.error('Reset error:', err);
-  }
-});
 
 initCounter();
