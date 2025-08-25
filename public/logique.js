@@ -33,8 +33,8 @@ let marketcap = 0;
 }*/
 
 // Lance la récupération du Market Cap et mise à jour auto toutes les 30 sec
-fetchMarketCap();
-setInterval(fetchMarketCap, 30000);
+//fetchMarketCap();
+//setInterval(fetchMarketCap, 30000);
 
 
 async function fetchClickPerMinute() {
