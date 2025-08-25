@@ -15,7 +15,7 @@ async function fetchMarketCap() {
 
     // Si la donnée existe
     marketcap = dataResp?.pairs?.[0]?.marketCap || 100000000;
-    clicksPerSecond = marketcap / secondsInDay;
+    //clicksPerSecond = marketcap / secondsInDay;
 
     // Mise à jour du DOM
     if (marketCapEl) {
